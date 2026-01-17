@@ -5,6 +5,7 @@ import '../App.css'
 
 const URL_API = "http://localhost:3000/";
 
+
 const Download = () => {
     const [formData, setFormData] = useState({
         selectedOption: '',
@@ -36,54 +37,56 @@ const Download = () => {
     const [logs, setLogs] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const resetFormularioSesion = () => { 
+
+
+    const resetFormularioSesion = () => {
         setShowDialog(false);
         setFormDialogSesion({ usuario: '', contrasena: '' });
         setErrors({}); // limpias los errores 
     };
 
     const validarFormTestSftp = () => {
-        const errors ={};
-        if (!formDialogSesion.usuario) { 
-            errors.usuario = 'Debe ingresar el usuario'; 
-        } 
-        if (!formDialogSesion.contrasena) { 
-            errors.contrasena = 'Debe ingresar una contraseña'; 
-        }   
+        const errors = {};
+        if (!formDialogSesion.usuario) {
+            errors.usuario = 'Debe ingresar el usuario';
+        }
+        if (!formDialogSesion.contrasena) {
+            errors.contrasena = 'Debe ingresar una contraseña';
+        }
         return errors;
     }
 
     const validarFormulario = () => {
-        const errors ={};
-        if(!formData.selectedOption){
-            errors.selectedOption='Debe seleccionar una opción';
+        const errors = {};
+        if (!formData.selectedOption) {
+            errors.selectedOption = 'Debe seleccionar una opción';
         }
-        
-        if(!Object.values(formData.checkboxesFile).some((value) => value)){
-            errors.checkboxesFile='Debe seleccionar un log';
+
+        if (!Object.values(formData.checkboxesFile).some((value) => value)) {
+            errors.checkboxesFile = 'Debe seleccionar un log';
         }
-        if(!Object.values(formData.checkboxesInstance).some((value) => value)){
-            errors.checkboxesInstance='Debe seleccionar una instancia';
+        if (!Object.values(formData.checkboxesInstance).some((value) => value)) {
+            errors.checkboxesInstance = 'Debe seleccionar una instancia';
         }
-        if(formData.downloadByDate){
-            if(!formData.selectedDate.trim()){
-                errors.selectedDate='Debe ingresar una fecha';
+        if (formData.downloadByDate) {
+            if (!formData.selectedDate.trim()) {
+                errors.selectedDate = 'Debe ingresar una fecha';
             }
-        }else{
-             delete errors.selectedDate;
-        } 
+        } else {
+            delete errors.selectedDate;
+        }
         return errors;
     }
 
     const handleChange = (e) => {
-        const {name,value, type , checked} = e.target;
+        const { name, value, type, checked } = e.target;
 
-        if(type === 'checkbox'){
+        if (type === 'checkbox') {
             // Detectar si el checkbox pertenece a checkboxesFile o checkboxesInstance
             const targetGroup = name.startsWith("instance")
-            ? "checkboxesInstance"
-            : "checkboxesFile";
-           const newCheckboxes = {
+                ? "checkboxesInstance"
+                : "checkboxesFile";
+            const newCheckboxes = {
                 ...formData[targetGroup],
                 [name]: checked,
             };
@@ -101,21 +104,21 @@ const Download = () => {
                 });
             }
 
-       }else{
+        } else {
             setFormData({
                 ...formData,
                 [name]: value
             });
 
             //limpiar error
-            if(errors[name]){
+            if (errors[name]) {
                 setErrors({
                     ...errors,
-                    [name]:''
+                    [name]: ''
                 });
             }
         }
-        
+
     };
 
 
@@ -141,61 +144,61 @@ const Download = () => {
         }))
     };
 
-    const handleSubmitTestSftp =  async (e) => {
+    const handleSubmitTestSftp = async (e) => {
         e.preventDefault();
         setLoadingTest(true)
         const newErrors = validarFormTestSftp();
         try {
-            if(Object.keys(newErrors).length > 0){
+            if (Object.keys(newErrors).length > 0) {
                 setErrors(newErrors);
                 return;
             }
-            const response = await fetch(URL_API+"test",{
+            const response = await fetch(URL_API + "test", {
                 method: "POST",
-                headers:{'Content-type' : 'application/json'},
+                headers: { 'Content-type': 'application/json' },
                 body: JSON.stringify({
                     usuario: formDialogSesion.usuario,
                     contrasena: formDialogSesion.contrasena,
                 })
             });
-            
+
             const data = await response.json();
-            
+
             if (!response.ok) {
-                handleToast("error",`Error: ${data.error || data.message}`); 
+                handleToast("error", `Error: ${data.error || data.message}`);
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
             if (data.code === 200) {
                 resetFormularioSesion();
-                handleToast("success","Conexión realizada con exito"); 
-            } 
-            
+                handleToast("success", "Conexión realizada con exito");
+            }
+
         } catch (error) {
-             handleToast("error",`Error: ${error.message}`); 
+            handleToast("error", `Error: ${error.message}`);
         } finally {
             setLoadingTest(false);
         }
     };
 
-    const handleSubmit =  async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true)
         setLogs([]);
         const newErrors = validarFormulario();
         try {
-            
+
             //debugger;
-            if(Object.keys(newErrors).length > 0){
+            if (Object.keys(newErrors).length > 0) {
                 setErrors(newErrors);
                 return;
             }
-            
+
             const checkFileActivo = Object.keys(formData.checkboxesFile).filter((key) => formData.checkboxesFile[key]);
             //alert(`Opción seleccionada: ${formData.selectedOption}`);
             //Se hace la peticion sftp
-            const response = await fetch(URL_API+"sftp",{
+            const response = await fetch(URL_API + "sftp", {
                 method: "POST",
-                headers:{'Content-type' : 'application/json'},
+                headers: { 'Content-type': 'application/json' },
                 body: JSON.stringify({
                     selectedOption: formData.selectedOption,
                     checkboxesFile: formData.checkboxesFile,
@@ -205,9 +208,9 @@ const Download = () => {
                 })
             });
             // Leer el stream 
-            const reader = response.body.getReader(); 
+            const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            
+
             while (true) {
                 const { done, value } = await reader.read();
                 setIsProcessing(true);
@@ -219,8 +222,8 @@ const Download = () => {
                 chunk.split("\n\n").forEach((line) => {
                     if (line.startsWith("data:")) {
                         const json = JSON.parse(line.replace("data: ", ""));
-                        //console.log("Evento:", json.message);
-                        addLog(json.message);
+                        console.log("Evento:", json.message, json.type);
+                        addLog(json);
                     }
                 });
             }
@@ -229,7 +232,7 @@ const Download = () => {
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
-            
+
             //const data = await response.json();
             //debugger;
             /*if(data.code==255){
@@ -237,26 +240,47 @@ const Download = () => {
                 handleToast("error",`${data.message}`); 
             }*/
         } catch (error) {
-             handleToast("error",`Error: ${error.message}`); 
+            handleToast("error", `Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleToast = (toastType,message) => {
+    const handleToast = (toastType, message) => {
         setToastType(toastType)
         setToastMessage(message);
         setShowToast(true);
         setTimeout(() => setShowToast(false), 6000);
     };
 
+    function getLogClass(type) {
+        switch (type) {
+            case "ERROR":
+                return "text-red-600 bg-red-50";
+            case "info":
+                return "text-yellow-700 bg-yellow-50";
+            case "INFO":
+                return "text-blue-600 bg-blue-50";
+            case "server":
+                return "text-gray-600 bg-gray-50";
+            case "progress":
+                return "mb-1 px-2 py-1 rounded";
+            default:
+                return "text-gray-600 bg-gray-50";
+        }
+    }
+
     const addLog = (message) => {
         const timestamp = new Date().toLocaleTimeString();
-        setLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+        setLogs(prev => [
+            ...prev,
+            { ...message, timestamp }
+        ]);
+        //setLogs(prev => [...prev, `[${timestamp}] ${message.message}`]);
     };
 
     return (
-        
+
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4 mb-0">
 
             {/* Dialog Modal Usuario Sftp*/}
@@ -307,7 +331,7 @@ const Download = () => {
                                 </div>
 
                             </div>
-                            
+
                             <div className="flex gap-3 justify-end">
                                 <button
                                     onClick={resetFormularioSesion}
@@ -319,8 +343,8 @@ const Download = () => {
                                     type="submit"
                                     className={`px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200
                                     ${loadingTest
-                                        ? "bg-blue-600 text-white cursor-not-allowed opacity-50" 
-                                        : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg"}`}
+                                            ? "bg-blue-600 text-white cursor-not-allowed opacity-50"
+                                            : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg"}`}
                                 >
                                     Aceptar
                                 </button>
@@ -329,45 +353,45 @@ const Download = () => {
                     </div>
 
                 </form>
-                
+
             )}
 
             {/* Toast Notification */}
             {showToast && (
-            <div className="fixed bottom-8 right-8 z-50 animate-slide-in w-[350px]">
-                <div
-                    className={`px-6 py-4 rounded-lg shadow-lg flex items-start gap-3 border-l-4 
-                    ${toastType === "success" 
-                        ? "bg-green-50 text-green-800 border-green-600" 
-                        : "bg-red-50 text-red-800 border-red-600"}`}
-                >
-                    {/* Icono */}
-                    <div className="pt-1">
-                    {toastType === "success" ? (
-                        <svg className="w-6 h-6 text-green-600" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16z" />   {/* círculo */}
-                            <path d="M7 10l2 2 4-4" />                       {/* check */}
-                        </svg>
-                    ) : (
-                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="9" y1="9" x2="15" y2="15" />
-                            <line x1="15" y1="9" x2="9" y2="15" />
-                        </svg>
-                    )}
-                    </div>
+                <div className="fixed bottom-8 right-8 z-50 animate-slide-in w-[350px]">
+                    <div
+                        className={`px-6 py-4 rounded-lg shadow-lg flex items-start gap-3 border-l-4 
+                    ${toastType === "success"
+                                ? "bg-green-50 text-green-800 border-green-600"
+                                : "bg-red-50 text-red-800 border-red-600"}`}
+                    >
+                        {/* Icono */}
+                        <div className="pt-1">
+                            {toastType === "success" ? (
+                                <svg className="w-6 h-6 text-green-600" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16z" />   {/* círculo */}
+                                    <path d="M7 10l2 2 4-4" />                       {/* check */}
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="9" y1="9" x2="15" y2="15" />
+                                    <line x1="15" y1="9" x2="9" y2="15" />
+                                </svg>
+                            )}
+                        </div>
 
-                    {/* Texto */}
-                    <div>
-                    <div className="font-semibold">
-                        {toastType === "success" ? "Éxito" : "Error"}
-                    </div>
-                    <div className="text-sm">{toastMessage}</div>
+                        {/* Texto */}
+                        <div>
+                            <div className="font-semibold">
+                                {toastType === "success" ? "Éxito" : "Error"}
+                            </div>
+                            <div className="text-sm">{toastMessage}</div>
+                        </div>
                     </div>
                 </div>
-                </div>
 
-            
+
             )}
 
             {/* Formulario */}
@@ -422,7 +446,7 @@ const Download = () => {
                             />
                             <span className="ml-2 text-gray-700">PROD</span>
                         </label>
-                        
+
                     </div>
                     {errors.selectedOption && (
                         <p className='flex items-center cursor-pointer mt-2 text-red-600'>
@@ -517,8 +541,8 @@ const Download = () => {
                                     </p>
                                 )}
                             </label>
-                            
-                            
+
+
                             <label className='flex items-center cursor-pointer col-span-3 '>
                                 <input
                                     type='checkbox'
@@ -542,7 +566,7 @@ const Download = () => {
                                             onChange={handleChange}
                                             className='w-full px-3 py-2 border border-gray-300 rounded-md'
                                         />
-                                        
+
                                     </div>
                                     <div className='flex items-center cursor-pointer col-span-3'>
                                         {errors.selectedDate && (
@@ -551,10 +575,10 @@ const Download = () => {
                                             </p>
                                         )}
                                     </div>
-                                    
+
                                 </>
                             )}
-                            
+
                         </div>
                     </div>
 
@@ -563,34 +587,48 @@ const Download = () => {
                         disabled={loading}
                         className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg
                             ${loading
-                        ? "bg-blue-600 text-white cursor-not-allowed opacity-50" 
-                        : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg"}`}
+                                ? "bg-blue-600 text-white cursor-not-allowed opacity-50"
+                                : "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg"}`}
                     >
                         {loading ? 'Procesando...' : 'Descargar'}
                     </button>
                 </form>
             </div>
-            
+
             {/* Process */}
             {logs.length > 0 && (
-            <div className="bg-white rounded-lg shadow-lg p-8 w-3/4  mt-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-0">Registro de Proceso</h2>
-                <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
-                    {logs.map((log, index) => (
-                    <div key={index} className="mb-1">
-                        {log}
+                <div className="bg-white rounded-lg shadow-lg p-8 w-3/4 mt-6">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Registro de Proceso</h2>
+                    <div
+                        className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto"
+                        aria-live="polite"
+                    >
+                        {logs.length > 0 ? (
+                            logs.map((log, index) => (
+                                
+                                <div key={index} className="flex items-start gap-3">
+                                    <span className="mb-1 px-2 py-1 rounded">
+                                        [{log.timestamp}]
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getLogClass(log.type)}`} >
+                                        {log.message}
+                                    </span>
+                                    
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 italic">No hay registros disponibles</div>
+                        )}
+
+                        {isProcessing && (
+                            <div className="flex items-center space-x-2 mt-2">
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span>{loading ? "Procesando..." : "Finalizado"}</span>
+                            </div>
+                        )}
                     </div>
-                    ))}
-                    {isProcessing && (
-                    <div className="flex items-center space-x-2 mt-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>
-                            {loading ? 'Procesando...' : 'Finalizado'}
-                        </span>
-                    </div>
-                    )}
                 </div>
-            </div>
+
             )}
         </div>
 

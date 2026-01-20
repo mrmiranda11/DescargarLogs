@@ -31,7 +31,6 @@ async function deleteComprimidos(baseDir: string, instancias: any) {
     }
 }
 
-const nombre = "Copilot";
 export class SftpController {
 
     testSftp = async (req: Request, res: Response) => {
@@ -135,14 +134,17 @@ export class SftpController {
             }
             return res.end();
         } catch (error) {
+            
             const err = error as Error;
-            if (err.message.includes("Authentication failed") ||
+            /*if (err.message.includes("Authentication failed") ||
                 err.message.includes("All configured authentication methods failed")
             ) {
                 return res.status(200).json({ code: 255, message: err.message });
             } else {
                 return res.status(500).json({ code: 500, error: err.message });
-            }
+            }*/
+            res.write(`Error interno: ${err.message}`); 
+            res.end();
 
         }
     }

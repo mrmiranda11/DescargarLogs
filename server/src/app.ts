@@ -3,7 +3,6 @@ import SftpRoutes from './routes/SftpRoutes';
 import cors from 'cors';
 
 import { connectSftpDemo } from './services/SftpService';
-import { connectSftpProd } from './services/SftpService';
 
 const allowedOrigins=[
     'http://localhost:5173'

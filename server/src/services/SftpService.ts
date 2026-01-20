@@ -4,7 +4,10 @@ import SftpClient from 'ssh2-sftp-client'
 import fs from "fs";
 import path from 'path';
 import zlib from "zlib";
+import { pipeline } from "stream"; 
+import { promisify } from "util";
 
+const pipe = promisify(pipeline);
 // Función para asegurar que el directorio local exista 
 const ensureDirExists = (dir: string) => {
     if (!fs.existsSync(dir)) {
@@ -87,11 +90,23 @@ export async function connectSftpDemo(parameter:any,req:Request,res:Response) {
                 if(parameter.fecha){
                     pathRemoto = parameter.dirRemoto+instance+file+"-"+parameter.fecha+".log.gz";
                     res.write(`data: ${JSON.stringify({type: 'progress',message: `Inicio la descarga de ${file}-${parameter.fecha}.log`})}\n\n`);
-                    await sftp.get(pathRemoto, pathLocal+file+"-"+parameter.fecha+".log.gz");
+                    //await sftp.get(pathRemoto, pathLocal+file+"-"+parameter.fecha+".log.gz");
+                    await sftp.fastGet(pathRemoto, pathLocal+file+"-"+parameter.fecha+".log.gz", { 
+                        concurrency: 64, // número de bloques simultáneos 
+                        chunkSize: 32768 // tamaño de cada bloque en bytes 
+                    });
                     var pathGzIn = pathLocal+file+"-"+parameter.fecha+".log.gz"; 
                     var pathGzOut = pathGzIn.substring(0,pathGzIn.length-3);
                     //await descomprimirYEliminar(pathGzIn,pathGzOut);
-                    fs.createReadStream(pathGzIn)
+                    // Descomprimir usando pipeline 
+                    await pipe( 
+                        fs.createReadStream(pathGzIn), 
+                        zlib.createGunzip(), 
+                        fs.createWriteStream(pathGzOut) 
+                    );
+
+
+                    /*fs.createReadStream(pathGzIn)
                         .pipe(zlib.createGunzip())
                         .pipe(fs.createWriteStream(pathGzOut))
                         .on('close', () => {
@@ -102,9 +117,9 @@ export async function connectSftpDemo(parameter:any,req:Request,res:Response) {
                                     } else {
                                         console.log(`Archivo eliminado: ${pathLocalGz}`);
                                     }
-                                });*/
+                                });
                             }
-                        });
+                        });*/
                         
                     
                 }else{

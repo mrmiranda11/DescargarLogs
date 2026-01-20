@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import reactLogo from '../assets/react.svg'
 import viteLogo from '/vite.svg'
+import { ExternalLink } from 'lucide-react';
 import '../App.css'
 
 const URL_API = "http://localhost:3000/";
@@ -36,9 +37,7 @@ const Download = () => {
     });
     const [logs, setLogs] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
-
-
-
+    
     const resetFormularioSesion = () => {
         setShowDialog(false);
         setFormDialogSesion({ usuario: '', contrasena: '' });
@@ -120,7 +119,6 @@ const Download = () => {
         }
 
     };
-
 
     const handleChangeDialog = (e) => {
         const { name, value } = e.target;
@@ -279,6 +277,8 @@ const Download = () => {
         //setLogs(prev => [...prev, `[${timestamp}] ${message.message}`]);
     };
 
+
+
     return (
 
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4 mb-0">
@@ -390,8 +390,6 @@ const Download = () => {
                         </div>
                     </div>
                 </div>
-
-
             )}
 
             {/* Formulario */}
@@ -581,7 +579,11 @@ const Download = () => {
 
                         </div>
                     </div>
-
+                    <a className='pb-4 flex items-center gap-2 text-blue-700 hover:text-blue-400 transition-colors'
+                        href="http://localhost:5174/read"  > 
+                        <span className='text-base'>Ver Logs Monitor</span> 
+                        <ExternalLink size={16}/>
+                    </a>
                     <button
                         type="submit"
                         disabled={loading}

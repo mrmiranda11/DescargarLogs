@@ -37,7 +37,11 @@ const Download = () => {
     });
     const [logs, setLogs] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
-    
+
+    const today = new Date(); 
+    today.setDate(today.getDate() - 1); // restar un día 
+    const yesterday = today.toISOString().split("T")[0];
+
     const resetFormularioSesion = () => {
         setShowDialog(false);
         setFormDialogSesion({ usuario: '', contrasena: '' });
@@ -218,10 +222,16 @@ const Download = () => {
 
                 // Cada mensaje SSE termina con "\n\n"
                 chunk.split("\n\n").forEach((line) => {
+                    
                     if (line.startsWith("data:")) {
                         const json = JSON.parse(line.replace("data: ", ""));
-                        console.log("Evento:", json.message, json.type);
+                        //console.log("Evento:", json.message, json.type);
                         addLog(json);
+                    }
+                    if (line.startsWith("Error")) {
+                        const error = { type: "error", message: "Archivo no encontrado" };
+                        console.log(error);
+                        addLog(error);
                     }
                 });
             }
@@ -253,7 +263,7 @@ const Download = () => {
 
     function getLogClass(type) {
         switch (type) {
-            case "ERROR":
+            case "error":
                 return "text-red-600 bg-red-50";
             case "info":
                 return "text-yellow-700 bg-yellow-50";
@@ -562,6 +572,7 @@ const Download = () => {
                                             name='selectedDate'
                                             value={formData.selectedDate}
                                             onChange={handleChange}
+                                            max={yesterday}
                                             className='w-full px-3 py-2 border border-gray-300 rounded-md'
                                         />
 
